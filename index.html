@@ -10,6 +10,7 @@
             --tile-bg: #cdc1b4;
             --text-dark: #776e65;
             --text-light: #f9f6f2;
+            --transition-speed: 150ms;
         }
         body {
             background-color: #faf8ef;
@@ -19,32 +20,43 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            touch-action: none; /* Prevent scrolling while playing */
+            overflow: hidden;
         }
         .container {
             width: 400px;
+            max-width: 95vw;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         h1 { font-size: 60px; margin: 0; }
         .score-container {
             background: var(--bg-color);
-            padding: 10px 25px;
+            padding: 10px 20px;
             border-radius: 3px;
             color: white;
             text-align: center;
+            min-width: 60px;
         }
         .score-label { text-transform: uppercase; font-size: 13px; display: block; }
         .score-value { font-size: 25px; font-weight: bold; }
+        .instructions {
+            margin-bottom: 15px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
         .grid-container {
             width: 400px;
             height: 400px;
+            max-width: 95vw;
+            max-height: 95vw;
             background: var(--bg-color);
             border-radius: 6px;
             padding: 15px;
@@ -54,10 +66,9 @@
             gap: 15px;
             position: relative;
             box-sizing: border-box;
+            user-select: none;
         }
         .grid-cell {
-            width: 81.25px;
-            height: 81.25px;
             background: var(--tile-bg);
             border-radius: 3px;
         }
@@ -71,9 +82,24 @@
             align-items: center;
             font-size: 35px;
             font-weight: bold;
-            transition: all 0.1s ease-in-out;
+            transition: transform var(--transition-speed) ease-in-out;
             z-index: 10;
+            user-select: none;
         }
+        /* Scale animation for new/merged tiles */
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .tile-new {
+            animation: pop 200ms ease-in-out;
+        }
+        .tile-merged {
+            animation: pop 200ms ease-in-out;
+            z-index: 20;
+        }
+
         .tile-2 { background: #eee4da; color: var(--text-dark); }
         .tile-4 { background: #ede0c8; color: var(--text-dark); }
         .tile-8 { background: #f2b179; color: var(--text-light); }
@@ -86,7 +112,13 @@
         .tile-1024 { background: #edc53f; color: var(--text-light); font-size: 25px; }
         .tile-2048 { background: #edc22e; color: var(--text-light); font-size: 25px; }
         
-        .controls { margin-top: 20px; }
+        .controls { 
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
         button {
             background: #8f7a66;
             border: none;
@@ -96,6 +128,13 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 18px;
+        }
+        
+        @media (max-width: 420px) {
+            .container { width: 320px; }
+            .grid-container { width: 320px; height: 320px; padding: 10px; gap: 10px; }
+            .grid-cell, .tile { width: 67.5px; height: 67.5px; }
+            h1 { font-size: 40px; }
         }
     </style>
 </head>
@@ -108,8 +147,11 @@
                 <span id="score" class="score-value">0</span>
             </div>
         </div>
+        <div class="instructions">
+            Join the numbers and get to the <strong>2048 tile!</strong><br>
+            <strong>How to play:</strong> Use <strong>Arrow Keys</strong>, <strong>Swipe</strong>, or <strong>Drag</strong> to move tiles.
+        </div>
         <div id="grid" class="grid-container">
-            <!-- Grid cells -->
             <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
             <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
             <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
@@ -123,101 +165,160 @@
     <script>
         const gridDisplay = document.getElementById('grid');
         const scoreDisplay = document.getElementById('score');
-        let tiles = [];
+        let tiles = Array(16).fill(null); // Will store tile objects: { value, id, element, isNew, isMerged }
         let score = 0;
+        let tileCounter = 0;
 
         function createBoard() {
-            tiles = Array(16).fill(0);
+            tiles = Array(16).fill(null);
+            gridDisplay.querySelectorAll('.tile').forEach(t => t.remove());
             addTile();
             addTile();
             render();
         }
 
         function addTile() {
-            const emptyIndices = tiles.map((v, i) => v === 0 ? i : null).filter(v => v !== null);
+            const emptyIndices = tiles.map((v, i) => v === null ? i : null).filter(v => v !== null);
             if (emptyIndices.length > 0) {
                 const randomIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
-                tiles[randomIdx] = Math.random() < 0.9 ? 2 : 4;
+                const val = Math.random() < 0.9 ? 2 : 4;
+                tiles[randomIdx] = { 
+                    value: val, 
+                    id: tileCounter++, 
+                    isNew: true,
+                    isMerged: false
+                };
             }
         }
 
         function render() {
-            // Clear existing tiles
-            const existingTiles = document.querySelectorAll('.tile');
-            existingTiles.forEach(t => t.remove());
+            const size = gridDisplay.clientWidth;
+            const padding = size * 0.0375; // Approx 15px for 400px width
+            const cellSize = (size - padding * 5) / 4;
+            const step = cellSize + padding;
 
-            tiles.forEach((value, i) => {
-                if (value !== 0) {
-                    const tile = document.createElement('div');
-                    tile.innerText = value;
-                    tile.classList.add('tile', `tile-${value}`);
-                    
-                    const row = Math.floor(i / 4);
-                    const col = i % 4;
-                    
-                    tile.style.top = `${15 + row * 96.25}px`;
-                    tile.style.left = `${15 + col * 96.25}px`;
-                    
-                    gridDisplay.appendChild(tile);
+            tiles.forEach((tile, i) => {
+                if (!tile) return;
+
+                const row = Math.floor(i / 4);
+                const col = i % 4;
+                const top = padding + row * step;
+                const left = padding + col * step;
+
+                let el = document.getElementById(`tile-${tile.id}`);
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = `tile-${tile.id}`;
+                    el.classList.add('tile');
+                    gridDisplay.appendChild(el);
                 }
+
+                el.innerText = tile.value;
+                el.className = `tile tile-${tile.value}`;
+                if (tile.isNew) el.classList.add('tile-new');
+                if (tile.isMerged) el.classList.add('tile-merged');
+                
+                // Set dimensions dynamically for responsiveness
+                el.style.width = `${cellSize}px`;
+                el.style.height = `${cellSize}px`;
+                el.style.fontSize = tile.value > 100 ? (tile.value > 1000 ? '25px' : '30px') : '35px';
+                
+                // Use transform for smooth movement
+                el.style.transform = `translate(${left}px, ${top}px)`;
+                
+                // Reset flags
+                tile.isNew = false;
+                tile.isMerged = false;
             });
+
             scoreDisplay.innerText = score;
         }
 
         function move(direction) {
             let moved = false;
             const size = 4;
+            let newTiles = Array(16).fill(null);
+
+            const getIdx = (r, c) => r * size + c;
 
             if (direction === 'left' || direction === 'right') {
                 for (let r = 0; r < size; r++) {
-                    let row = tiles.slice(r * size, (r + 1) * size);
+                    let row = [];
+                    for (let c = 0; c < size; c++) row.push(tiles[getIdx(r, c)]);
+                    
                     if (direction === 'right') row.reverse();
                     
-                    let newRow = row.filter(v => v !== 0);
-                    for (let i = 0; i < newRow.length - 1; i++) {
-                        if (newRow[i] === newRow[i+1]) {
-                            newRow[i] *= 2;
-                            score += newRow[i];
-                            newRow.splice(i + 1, 1);
+                    let filtered = row.filter(t => t !== null);
+                    let merged = [];
+                    
+                    for (let i = 0; i < filtered.length; i++) {
+                        if (i < filtered.length - 1 && filtered[i].value === filtered[i+1].value) {
+                            merged.push({ 
+                                value: filtered[i].value * 2, 
+                                id: filtered[i].id, // Keep one ID for the move transition
+                                isMerged: true 
+                            });
+                            // Remove the element of the tile that got merged into
+                            const elToRemove = document.getElementById(`tile-${filtered[i+1].id}`);
+                            if (elToRemove) elToRemove.remove();
+                            
+                            score += filtered[i].value * 2;
+                            i++;
+                            moved = true;
+                        } else {
+                            merged.push(filtered[i]);
                         }
                     }
-                    while (newRow.length < size) newRow.push(0);
-                    if (direction === 'right') newRow.reverse();
+                    
+                    while (merged.length < size) merged.push(null);
+                    if (direction === 'right') merged.reverse();
                     
                     for (let c = 0; c < size; c++) {
-                        if (tiles[r * size + c] !== newRow[c]) moved = true;
-                        tiles[r * size + c] = newRow[c];
+                        if (tiles[getIdx(r, c)]?.id !== merged[c]?.id) moved = true;
+                        newTiles[getIdx(r, c)] = merged[c];
                     }
                 }
             } else {
                 for (let c = 0; c < size; c++) {
-                    let column = [tiles[c], tiles[c + size], tiles[c + size * 2], tiles[c + size * 3]];
-                    if (direction === 'down') column.reverse();
+                    let col = [];
+                    for (let r = 0; r < size; r++) col.push(tiles[getIdx(r, c)]);
                     
-                    let newCol = column.filter(v => v !== 0);
-                    for (let i = 0; i < newCol.length - 1; i++) {
-                        if (newCol[i] === newCol[i+1]) {
-                            newCol[i] *= 2;
-                            score += newCol[i];
-                            newCol.splice(i + 1, 1);
+                    if (direction === 'down') col.reverse();
+                    
+                    let filtered = col.filter(t => t !== null);
+                    let merged = [];
+                    
+                    for (let i = 0; i < filtered.length; i++) {
+                        if (i < filtered.length - 1 && filtered[i].value === filtered[i+1].value) {
+                            merged.push({ value: filtered[i].value * 2, id: filtered[i].id, isMerged: true });
+                            const elToRemove = document.getElementById(`tile-${filtered[i+1].id}`);
+                            if (elToRemove) elToRemove.remove();
+                            score += filtered[i].value * 2;
+                            i++;
+                            moved = true;
+                        } else {
+                            merged.push(filtered[i]);
                         }
                     }
-                    while (newCol.length < size) newCol.push(0);
-                    if (direction === 'down') newCol.reverse();
+                    
+                    while (merged.length < size) merged.push(null);
+                    if (direction === 'down') merged.reverse();
                     
                     for (let r = 0; r < size; r++) {
-                        if (tiles[r * size + c] !== newCol[r]) moved = true;
-                        tiles[r * size + c] = newCol[r];
+                        if (tiles[getIdx(r, r)]?.id !== merged[r]?.id) moved = true; // Simple check
+                        newTiles[getIdx(r, c)] = merged[r];
                     }
                 }
             }
 
             if (moved) {
+                tiles = newTiles;
                 addTile();
                 render();
             }
         }
 
+        // Input Handlers
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') move('left');
             if (e.key === 'ArrowRight') move('right');
@@ -225,12 +326,52 @@
             if (e.key === 'ArrowDown') move('down');
         });
 
+        // Touch/Mouse Swipe
+        let startX, startY;
+        document.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', e => {
+            if (!startX || !startY) return;
+            const diffX = e.changedTouches[0].clientX - startX;
+            const diffY = e.changedTouches[0].clientY - startY;
+            handleSwipe(diffX, diffY);
+        }, { passive: true });
+
+        document.addEventListener('mousedown', e => {
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        document.addEventListener('mouseup', e => {
+            if (!startX || !startY) return;
+            const diffX = e.clientX - startX;
+            const diffY = e.clientY - startY;
+            handleSwipe(diffX, diffY);
+        });
+
+        function handleSwipe(dx, dy) {
+            const threshold = 30;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (Math.abs(dx) > threshold) move(dx > 0 ? 'right' : 'left');
+            } else {
+                if (Math.abs(dy) > threshold) move(dy > 0 ? 'down' : 'up');
+            }
+            startX = startY = null;
+        }
+
         function resetGame() {
             score = 0;
             createBoard();
         }
 
+        window.addEventListener('resize', render);
         createBoard();
     </script>
+</body>
+</html>
+
 </body>
 </html>
