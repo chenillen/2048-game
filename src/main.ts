@@ -112,6 +112,9 @@ function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
     
     const result = game.move(direction);
     if (result.moved) {
+        if (result.merged && typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(20);
+        }
         render();
         checkCelebration();
     }
