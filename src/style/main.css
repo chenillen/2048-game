@@ -105,7 +105,7 @@ body {
 
 .header-buttons {
     display: flex;
-    gap: 5px;
+    gap: 8px;
 }
 
 h1 { 
@@ -172,11 +172,27 @@ h1 {
     background: #8f7a66;
     border: none;
     border-radius: 3px;
-    padding: 5px 10px;
+    padding: 8px;
     color: white;
-    font-weight: bold;
     cursor: pointer;
-    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.icon-btn:hover {
+    background: #7f6a56;
+}
+
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.icon-btn.off {
+    background: #bbada0;
 }
 
 .grid-container {
@@ -237,9 +253,10 @@ h1 {
 .tile-65536 .tile-inner { background: #3c3a32; color: #f9f6f2; font-size: 25px; }
 
 /* Digit-based font scaling helper classes */
-.tile-digits-4 .tile-inner { font-size: 35px !important; }
-.tile-digits-5 .tile-inner { font-size: 25px !important; }
-.tile-digits-6 .tile-inner { font-size: 20px !important; }
+.tile-digits-3 .tile-inner { font-size: 45px; }
+.tile-digits-4 .tile-inner { font-size: 35px; }
+.tile-digits-5 .tile-inner { font-size: 30px; }
+.tile-digits-6 .tile-inner { font-size: 25px; }
 
 @keyframes pop {
     0% { transform: scale(0); opacity: 0; }
@@ -300,29 +317,34 @@ button {
     .header {
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 5px;
         margin-bottom: 10px;
     }
 
     h1 { 
         font-size: 60px; 
-        margin-bottom: 5px;
+        margin-bottom: 0px;
     }
 
-    .grid-container { width: 320px; height: 320px; padding: 10px; gap: 10px; }
+    .grid-container { width: 320px; height: 320px; padding: 6px; gap: 6px; }
+    .grid-cell { border-radius: 2px; }
     
-    .tile-inner { font-size: 35px; }
-    .tile-digits-4 .tile-inner { font-size: 24px !important; }
-    .tile-digits-5 .tile-inner { font-size: 18px !important; }
-    .tile-digits-6 .tile-inner { font-size: 15px !important; }
+    .tile-inner { font-size: 30px; border-radius: 2px; }
+    .tile-digits-3 .tile-inner { font-size: 26px; }
+    .tile-digits-4 .tile-inner { font-size: 22px; }
+    .tile-digits-5 .tile-inner { font-size: 18px; }
+    .tile-digits-6 .tile-inner { font-size: 14px; }
 
-    .score-container, .best-container { padding: 8px 12px; }
-    .score-value { font-size: 16px; }
+    .score-container, .best-container { padding: 6px 10px; min-width: 50px; }
+    .score-value { font-size: 15px; }
     
     .instructions {
-        font-size: 14px;
+        font-size: 13px;
         text-align: center;
     }
+
+    .difficulty-selector { width: 240px; margin-bottom: 15px; }
+    .diff-option { padding: 8px; font-size: 14px; }
     
     .footer {
         font-size: 11px;
