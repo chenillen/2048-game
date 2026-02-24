@@ -13,6 +13,7 @@ export class GameLogic {
     private bestScore: number = 0;
     private playerName: string = 'Player';
     private tileCounter: number = 0;
+    private celebratedTiles: Set<number> = new Set();
 
     constructor() {
         this.loadScores();
@@ -38,7 +39,8 @@ export class GameLogic {
         localStorage.setItem('2048-game-state', JSON.stringify({
             grid: this.grid,
             score: this.score,
-            tileCounter: this.tileCounter
+            tileCounter: this.tileCounter,
+            celebratedTiles: Array.from(this.celebratedTiles)
         }));
     }
 
@@ -49,6 +51,7 @@ export class GameLogic {
             this.grid = data.grid;
             this.score = data.score;
             this.tileCounter = data.tileCounter;
+            this.celebratedTiles = new Set(data.celebratedTiles || []);
             return true;
         }
         return false;
@@ -60,6 +63,7 @@ export class GameLogic {
         }
         this.grid = Array(16).fill(null);
         this.score = 0;
+        this.celebratedTiles = new Set();
         this.addTile();
         this.addTile();
     }
@@ -167,6 +171,7 @@ export class GameLogic {
     public getScore() { return this.score; }
     public getBestScore() { return this.bestScore; }
     public getPlayerName() { return this.playerName; }
+    public getCelebratedTiles() { return this.celebratedTiles; }
     public setPlayerName(name: string) { 
         this.playerName = name; 
         this.saveScores();
