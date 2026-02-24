@@ -102,6 +102,40 @@ body {
     margin-bottom: 20px;
 }
 
+.header-top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#music-toggle {
+    margin-top: 10px;
+    background: #8f7a66;
+    padding: 5px 10px;
+    font-size: 14px;
+    border-radius: 3px;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+.difficulty-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    color: #776e65;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.difficulty-options label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 h1 { 
     font-size: 80px; 
     font-weight: bold;

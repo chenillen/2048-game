@@ -1,5 +1,5 @@
 import './style/main.css';
-import { GameLogic } from './logic/game';
+import { GameLogic, Difficulty } from './logic/game';
 import confetti from 'canvas-confetti';
 
 const gridDisplay = document.getElementById('grid')!;
@@ -11,7 +11,74 @@ const finalScoreDisplay = document.getElementById('final-score')!;
 const nameModal = document.getElementById('name-modal')!;
 const playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
 const startGameBtn = document.getElementById('start-game-btn')!;
+const musicToggleBtn = document.getElementById('music-toggle')!;
 const game = new GameLogic();
+
+// --- Audio Controller ---
+class AudioController {
+    private tracks = [
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
+        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+    ];
+    private audio = new Audio();
+    private isMuted = true;
+    private currentTrackIdx = 0;
+
+    constructor() {
+        this.audio.loop = false;
+        this.audio.onended = () => this.next();
+        
+        // Load initial state
+        const savedMute = localStorage.getItem('2048-music-muted');
+        this.isMuted = savedMute === null ? true : savedMute === 'true';
+        this.updateBtn();
+    }
+
+    public start() {
+        if (!this.isMuted) {
+            this.play();
+        }
+    }
+
+    private play() {
+        this.audio.src = this.tracks[this.currentTrackIdx];
+        this.audio.play().catch(e => console.log("Autoplay prevented:", e));
+    }
+
+    private next() {
+        this.currentTrackIdx = (this.currentTrackIdx + 1) % this.tracks.length;
+        if (!this.isMuted) this.play();
+    }
+
+    public toggle() {
+        this.isMuted = !this.isMuted;
+        localStorage.setItem('2048-music-muted', this.isMuted.toString());
+        if (this.isMuted) {
+            this.audio.pause();
+        } else {
+            if (!this.audio.src) {
+                this.play();
+            } else {
+                this.audio.play();
+            }
+        }
+        this.updateBtn();
+    }
+
+    private updateBtn() {
+        musicToggleBtn.innerText = this.isMuted ? '🎵 Off' : '🎵 On';
+    }
+}
+
+const audio = new AudioController();
 
 function render() {
     const size = gridDisplay.clientWidth;
@@ -21,7 +88,6 @@ function render() {
 
     const currentIds = new Set(game.getGrid().filter(t => t !== null).map(t => t!.id));
     
-    // Cleanup removed elements
     gridDisplay.querySelectorAll('.tile').forEach(el => {
         const id = parseInt(el.id.split('-')[1]);
         if (!currentIds.has(id)) el.remove();
@@ -40,30 +106,20 @@ function render() {
             el = document.createElement('div');
             el.id = `tile-${tile.id}`;
             el.classList.add('tile');
-            
-            // Critical fix: force initial position without transition
             el.style.transition = 'none';
             el.style.width = `${cellSize}px`;
             el.style.height = `${cellSize}px`;
             el.style.transform = `translate(${left}px, ${top}px)`;
-            
             gridDisplay.appendChild(el);
-            
-            // Force reflow
             el.offsetHeight; 
-            
-            // Restore transition
             el.style.transition = '';
         }
 
         el.innerText = tile.value.toString();
         el.className = `tile tile-${tile.value}`;
         
-        // Add digit-based scaling class
         const digits = tile.value.toString().length;
-        if (digits >= 4) {
-            el.classList.add(`tile-digits-${digits}`);
-        }
+        if (digits >= 4) el.classList.add(`tile-digits-${digits}`);
         
         if (tile.isNew) el.classList.add('tile-new');
         if (tile.isMerged) el.classList.add('tile-merged');
@@ -117,27 +173,18 @@ function triggerConfetti() {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-    function randomInRange(min: number, max: number) {
-        return Math.random() * (max - min) + min;
-    }
+    function randomInRange(min: number, max: number) { return Math.random() * (max - min) + min; }
 
     const interval: any = setInterval(function() {
         const timeLeft = animationEnd - Date.now();
-
-        if (timeLeft <= 0) {
-            return clearInterval(interval);
-        }
-
+        if (timeLeft <= 0) return clearInterval(interval);
         const particleCount = 50 * (timeLeft / duration);
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
 }
 
-// Global reset for the button
 (window as any).resetGame = () => {
-    gameOverModal.classList.add('hidden');
     playerNameInput.value = game.getPlayerName();
     nameModal.classList.remove('hidden');
     playerNameInput.focus();
@@ -145,36 +192,32 @@ function triggerConfetti() {
 
 startGameBtn.addEventListener('click', () => {
     const name = playerNameInput.value.trim() || 'Player';
+    const diff = (document.querySelector('input[name="difficulty"]:checked') as HTMLInputElement).value as Difficulty;
     game.setPlayerName(name);
     nameModal.classList.add('hidden');
-    game.init(false);
+    game.init(false, diff);
+    audio.start();
     render();
 });
 
+musicToggleBtn.addEventListener('click', () => audio.toggle());
+
 playerNameInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        startGameBtn.click();
-    }
+    if (e.key === 'Enter') startGameBtn.click();
 });
 
-// Keyboard Handlers
 document.addEventListener('keydown', (e) => {
-    // If typing in the input, don't move tiles
     if (document.activeElement === playerNameInput) return;
-
     if (e.key === 'ArrowLeft') handleInput('left');
     if (e.key === 'ArrowRight') handleInput('right');
     if (e.key === 'ArrowUp') handleInput('up');
     if (e.key === 'ArrowDown') handleInput('down');
-    
-    // ALT+N for new game (to avoid CMD+N conflict)
     if (e.altKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         (window as any).resetGame();
     }
 });
 
-// Swipe Logic
 let startX: number | null, startY: number | null;
 const handleTouch = (x: number, y: number) => {
     if (startX === null || startY === null) return;
@@ -199,6 +242,6 @@ document.addEventListener('mouseup', e => handleTouch(e.clientX, e.clientY));
 
 window.addEventListener('resize', render);
 
-// Startup
 game.init();
+if (game.getGrid().length > 0) audio.start();
 render();
