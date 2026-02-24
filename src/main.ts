@@ -8,6 +8,9 @@ const bestDisplay = document.getElementById('best')!;
 const bestNameDisplay = document.getElementById('best-name')!;
 const gameOverModal = document.getElementById('game-over-modal')!;
 const finalScoreDisplay = document.getElementById('final-score')!;
+const nameModal = document.getElementById('name-modal')!;
+const playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
+const startGameBtn = document.getElementById('start-game-btn')!;
 const game = new GameLogic();
 
 function render() {
@@ -75,8 +78,12 @@ function render() {
     }
 }
 
+function isModalOpen() {
+    return !gameOverModal.classList.contains('hidden') || !nameModal.classList.contains('hidden');
+}
+
 function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
-    if (game.isGameOver()) return;
+    if (game.isGameOver() || isModalOpen()) return;
     
     if (game.move(direction)) {
         render();
@@ -123,21 +130,37 @@ function triggerConfetti() {
 
 // Global reset for the button
 (window as any).resetGame = () => {
-    const name = prompt("Enter your name for high scores:", game.getPlayerName());
-    if (name) game.setPlayerName(name);
+    playerNameInput.value = game.getPlayerName();
+    nameModal.classList.remove('hidden');
+    playerNameInput.focus();
+};
+
+startGameBtn.addEventListener('click', () => {
+    const name = playerNameInput.value.trim() || 'Player';
+    game.setPlayerName(name);
+    nameModal.classList.add('hidden');
     game.init(false);
     render();
-};
+});
+
+playerNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        startGameBtn.click();
+    }
+});
 
 // Keyboard Handlers
 document.addEventListener('keydown', (e) => {
+    // If typing in the input, don't move tiles
+    if (document.activeElement === playerNameInput) return;
+
     if (e.key === 'ArrowLeft') handleInput('left');
     if (e.key === 'ArrowRight') handleInput('right');
     if (e.key === 'ArrowUp') handleInput('up');
     if (e.key === 'ArrowDown') handleInput('down');
     
-    // CMD+N or CTRL+N for new game
-    if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+    // ALT+N for new game (to avoid CMD+N conflict)
+    if (e.altKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         (window as any).resetGame();
     }
