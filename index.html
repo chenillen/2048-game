@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 - Refactored</title>
+  <script type="module" crossorigin src="./assets/index-xTUTfGeB.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BCflN0Wc.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>2048</h1>
+            <div class="score-panel">
+                <div class="score-container">
+                    <span class="score-label">Score</span>
+                    <span id="score" class="score-value">0</span>
+                </div>
+                <div class="best-container">
+                    <span class="score-label">Best</span>
+                    <span id="best" class="score-value">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="grid" class="grid-container">
+            <!-- 16 cells -->
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+            <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+        </div>
+
+        <div class="controls">
+            <div class="instructions">
+                <strong>New Game:</strong> CMD + N / CTRL + N<br>
+                <strong>Move:</strong> Arrow Keys / Swipe / Drag
+            </div>
+            <button onclick="resetGame()">New Game</button>
+        </div>
+    </div>
+</body>
+</html>
