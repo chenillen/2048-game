@@ -40,7 +40,8 @@ export class GameLogic {
             grid: this.grid,
             score: this.score,
             tileCounter: this.tileCounter,
-            celebratedTiles: Array.from(this.celebratedTiles)
+            celebratedTiles: Array.from(this.celebratedTiles),
+            isOver: this.isGameOver() // Store game over state
         }));
     }
 
@@ -48,6 +49,11 @@ export class GameLogic {
         const saved = localStorage.getItem('2048-game-state');
         if (saved) {
             const data = JSON.parse(saved);
+            // If the saved game was already over, don't restore it; start fresh
+            if (data.isOver) {
+                localStorage.removeItem('2048-game-state');
+                return false;
+            }
             this.grid = data.grid;
             this.score = data.score;
             this.tileCounter = data.tileCounter;
@@ -59,13 +65,21 @@ export class GameLogic {
 
     public init(restore: boolean = true) {
         if (restore && this.loadState()) {
+            if (this.isGameOver()) {
+                this.reset();
+            }
             return;
         }
+        this.reset();
+    }
+
+    private reset() {
         this.grid = Array(16).fill(null);
         this.score = 0;
         this.celebratedTiles = new Set();
         this.addTile();
         this.addTile();
+        this.saveState();
     }
 
     public addTile() {
