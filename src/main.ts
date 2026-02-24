@@ -6,6 +6,8 @@ const gridDisplay = document.getElementById('grid')!;
 const scoreDisplay = document.getElementById('score')!;
 const bestDisplay = document.getElementById('best')!;
 const bestNameDisplay = document.getElementById('best-name')!;
+const gameOverModal = document.getElementById('game-over-modal')!;
+const finalScoreDisplay = document.getElementById('final-score')!;
 const game = new GameLogic();
 
 function render() {
@@ -64,17 +66,21 @@ function render() {
     scoreDisplay.innerText = game.getScore().toString();
     bestDisplay.innerText = game.getBestScore().toString();
     bestNameDisplay.innerText = game.getPlayerName();
+
+    if (game.isGameOver()) {
+        finalScoreDisplay.innerText = game.getScore().toString();
+        gameOverModal.classList.remove('hidden');
+    } else {
+        gameOverModal.classList.add('hidden');
+    }
 }
 
 function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
+    if (game.isGameOver()) return;
+    
     if (game.move(direction)) {
         render();
         checkCelebration();
-        if (game.isGameOver()) {
-            setTimeout(() => {
-                alert(`Game Over! Final Score: ${game.getScore()}`);
-            }, 500);
-        }
     }
 }
 
