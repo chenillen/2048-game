@@ -12,10 +12,19 @@ const nameModal = document.getElementById('name-modal')!;
 const playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
 const startGameBtn = document.getElementById('start-game-btn')!;
 const musicToggle = document.getElementById('music-toggle')!;
+const undoBtn = document.getElementById('undo-btn') as HTMLButtonElement;
 const diffOptions = document.querySelectorAll('.diff-option');
 
 const game = new GameLogic();
 let selectedDifficulty: Difficulty = 'easy';
+
+// Sound Effects
+const sfx = {
+    move: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
+    merge: new Audio('https://assets.mixkit.co/active_storage/sfx/2016/2016-preview.mp3'),
+    celebrate: new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'),
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
+};
 
 // Music Logic
 const tracks = [
@@ -31,20 +40,21 @@ const tracks = [
     'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
 ];
 
-const audio = new Audio();
-audio.loop = true;
+const musicAudio = new Audio();
+musicAudio.loop = false; // We'll manually handle track change
 let isMusicOn = false;
 
 function playRandomTrack() {
     if (!isMusicOn) return;
     const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-    audio.src = randomTrack;
-    audio.play().catch(() => {
-        console.log("Auto-play blocked. User needs to interact first.");
+    musicAudio.src = randomTrack;
+    musicAudio.play().catch(() => {
         isMusicOn = false;
         updateMusicUI();
     });
 }
+
+musicAudio.onended = () => playRandomTrack();
 
 function updateMusicUI() {
     musicToggle.innerText = isMusicOn ? '🎵 On' : '🎵 Off';
@@ -54,10 +64,10 @@ function updateMusicUI() {
 musicToggle.addEventListener('click', () => {
     isMusicOn = !isMusicOn;
     if (isMusicOn) {
-        if (!audio.src) playRandomTrack();
-        else audio.play();
+        if (!musicAudio.src) playRandomTrack();
+        else musicAudio.play();
     } else {
-        audio.pause();
+        musicAudio.pause();
     }
     updateMusicUI();
 });
@@ -65,6 +75,7 @@ musicToggle.addEventListener('click', () => {
 // Difficulty Selection
 diffOptions.forEach(btn => {
     btn.addEventListener('click', () => {
+        sfx.click.play();
         diffOptions.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         selectedDifficulty = btn.getAttribute('data-value') as Difficulty;
@@ -123,6 +134,8 @@ function render() {
     scoreDisplay.innerText = game.getScore().toString();
     bestDisplay.innerText = game.getBestScore().toString();
     bestNameDisplay.innerText = game.getPlayerName();
+    
+    undoBtn.style.opacity = game.canUndo() ? '1' : '0.5';
 
     if (game.isGameOver()) {
         finalScoreDisplay.innerText = game.getScore().toString();
@@ -138,7 +151,16 @@ function isModalOpen() {
 
 function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
     if (game.isGameOver() || isModalOpen()) return;
-    if (game.move(direction)) {
+    
+    const result = game.move(direction);
+    if (result.moved) {
+        if (result.merged) {
+            sfx.merge.currentTime = 0;
+            sfx.merge.play();
+        } else {
+            sfx.move.currentTime = 0;
+            sfx.move.play();
+        }
         render();
         checkCelebration();
     }
@@ -153,6 +175,7 @@ function checkCelebration() {
         if (tile && milestones.includes(tile.value) && !celebrated.has(tile.value)) {
             celebrated.add(tile.value);
             game.saveState();
+            sfx.celebrate.play();
             triggerConfetti();
             break;
         }
@@ -174,7 +197,9 @@ function triggerConfetti() {
     }, 250);
 }
 
+// Global reset for the button
 (window as any).resetGame = () => {
+    sfx.click.play();
     gameOverModal.classList.add('hidden');
     playerNameInput.value = game.getPlayerName();
     nameModal.classList.remove('hidden');
@@ -182,12 +207,20 @@ function triggerConfetti() {
 };
 
 startGameBtn.addEventListener('click', () => {
+    sfx.click.play();
     const name = playerNameInput.value.trim() || 'Player';
     game.setPlayerName(name);
     nameModal.classList.add('hidden');
     game.init(false, selectedDifficulty);
-    if (isMusicOn && !audio.src) playRandomTrack();
+    if (isMusicOn && !musicAudio.src) playRandomTrack();
     render();
+});
+
+undoBtn.addEventListener('click', () => {
+    if (game.undo()) {
+        sfx.click.play();
+        render();
+    }
 });
 
 playerNameInput.addEventListener('keydown', (e) => {
@@ -200,9 +233,15 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') handleInput('right');
     if (e.key === 'ArrowUp') handleInput('up');
     if (e.key === 'ArrowDown') handleInput('down');
+    
     if (e.altKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         (window as any).resetGame();
+    }
+    
+    if (e.altKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        undoBtn.click();
     }
 });
 

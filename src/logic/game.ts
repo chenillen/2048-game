@@ -16,6 +16,7 @@ export class GameLogic {
     private tileCounter: number = 0;
     private celebratedTiles: Set<number> = new Set();
     private difficulty: Difficulty = 'easy';
+    private history: string[] = [];
 
     constructor() {
         this.loadScores();
@@ -38,14 +39,15 @@ export class GameLogic {
     }
 
     public saveState() {
-        localStorage.setItem('2048-game-state', JSON.stringify({
+        const state = JSON.stringify({
             grid: this.grid,
             score: this.score,
             tileCounter: this.tileCounter,
             celebratedTiles: Array.from(this.celebratedTiles),
             isOver: this.isGameOver(),
             difficulty: this.difficulty
-        }));
+        });
+        localStorage.setItem('2048-game-state', state);
     }
 
     public loadState(): boolean {
@@ -78,6 +80,7 @@ export class GameLogic {
         this.grid = Array(16).fill(null);
         this.score = 0;
         this.celebratedTiles = new Set();
+        this.history = [];
         this.addTile();
         this.addTile();
         this.saveState();
@@ -91,17 +94,15 @@ export class GameLogic {
             let newValue = 2;
 
             if (this.difficulty === 'easy') {
-                // Easy Mode: 2, 4, 8, and 16 (16 only after player reach 128)
                 const options = [2, 4, 8];
                 if (maxVal >= 128) options.push(16);
                 newValue = options[Math.floor(Math.random() * options.length)];
             } else {
-                // Hard Mode Logic
                 if (maxVal >= 16) {
                     const maxLevel = Math.log2(maxVal) - 2;
                     const possibleLevels = [];
                     for (let i = 1; i <= maxLevel; i++) {
-                        const weight = Math.floor(200 / Math.pow(2, i));
+                        const weight = Math.max(1, Math.floor(200 / Math.pow(2, i)));
                         for (let j = 0; j < weight; j++) possibleLevels.push(i);
                     }
                     const randomLevel = possibleLevels[Math.floor(Math.random() * possibleLevels.length)];
@@ -120,6 +121,18 @@ export class GameLogic {
         }
     }
 
+    public undo(): boolean {
+        if (this.history.length === 0) return false;
+        const prevState = this.history.pop()!;
+        const data = JSON.parse(prevState);
+        this.grid = data.grid;
+        this.score = data.score;
+        this.tileCounter = data.tileCounter;
+        this.celebratedTiles = new Set(data.celebratedTiles);
+        this.saveState();
+        return true;
+    }
+
     public isGameOver(): boolean {
         if (this.grid.some(t => t === null)) return false;
         const size = 4;
@@ -133,8 +146,16 @@ export class GameLogic {
         return true;
     }
 
-    public move(direction: 'left' | 'right' | 'up' | 'down'): boolean {
+    public move(direction: 'left' | 'right' | 'up' | 'down'): { moved: boolean, merged: boolean } {
+        const stateBefore = JSON.stringify({
+            grid: this.grid.map(t => t ? { ...t } : null),
+            score: this.score,
+            tileCounter: this.tileCounter,
+            celebratedTiles: Array.from(this.celebratedTiles)
+        });
+
         let moved = false;
+        let mergedAnything = false;
         const size = 4;
         let newGrid = Array(16).fill(null);
         const getIdx = (r: number, c: number) => r * size + c;
@@ -155,6 +176,7 @@ export class GameLogic {
                         this.score += newValue;
                         i++;
                         moved = true;
+                        mergedAnything = true;
                     } else {
                         filtered[i].isNew = false;
                         filtered[i].isMerged = false;
@@ -184,6 +206,7 @@ export class GameLogic {
                         this.score += newValue;
                         i++;
                         moved = true;
+                        mergedAnything = true;
                     } else {
                         filtered[i].isNew = false;
                         filtered[i].isMerged = false;
@@ -200,6 +223,9 @@ export class GameLogic {
         }
 
         if (moved) {
+            this.history.push(stateBefore);
+            if (this.history.length > 20) this.history.shift();
+            
             this.grid = newGrid;
             this.addTile();
             if (this.score > this.bestScore) {
@@ -208,7 +234,7 @@ export class GameLogic {
             }
             this.saveState();
         }
-        return moved;
+        return { moved, merged: mergedAnything };
     }
 
     public getGrid() { return this.grid; }
@@ -217,6 +243,7 @@ export class GameLogic {
     public getPlayerName() { return this.playerName; }
     public getCelebratedTiles() { return this.celebratedTiles; }
     public getDifficulty() { return this.difficulty; }
+    public canUndo() { return this.history.length > 0; }
     public setPlayerName(name: string) { 
         this.playerName = name; 
         this.saveScores();
