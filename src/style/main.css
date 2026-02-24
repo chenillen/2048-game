@@ -13,16 +13,20 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* Changed to flex-start for scrolling if needed */
     min-height: 100vh;
     margin: 0;
+    padding: 40px 0; /* Added padding */
     touch-action: none;
-    overflow: hidden;
+    overflow-y: auto; /* Allow vertical scroll */
 }
 
 .container {
     width: 500px;
     max-width: 95vw;
+    flex-grow: 1; /* Make container take up available space */
+    display: flex;
+    flex-direction: column;
 }
 
 .header {
@@ -151,7 +155,8 @@ button {
 }
 
 .footer {
-    margin-top: 40px;
+    margin-top: auto; /* Push footer to the bottom of the container */
+    padding: 40px 0 20px 0;
     font-size: 14px;
     color: #776e65;
     text-align: center;

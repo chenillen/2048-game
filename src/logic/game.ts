@@ -73,16 +73,24 @@ export class GameLogic {
         if (emptyIndices.length > 0) {
             const randomIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
             
-            // "Hard Mode" Logic:
-            // New tiles can be any power of 2 up to max_tile / 2.
+            // Revised Hard Mode Logic:
+            // New tiles can be any power of 2 up to 2 levels below max_tile (max_tile / 4).
+            // Larger numbers have a significantly lower spawn rate.
             const maxVal = Math.max(...this.grid.map(t => t ? t.value : 0));
             let newValue = 2;
 
-            if (maxVal > 4) {
-                const maxPower = Math.log2(maxVal);
-                // Random power between 1 and (maxPower - 1)
-                const randomPower = Math.floor(Math.random() * (maxPower - 1)) + 1;
-                newValue = Math.pow(2, randomPower);
+            if (maxVal >= 16) {
+                const maxLevel = Math.log2(maxVal) - 2; // 2 levels below max
+                // Weighting: Higher numbers are less likely.
+                // We'll use an exponential distribution or simple weighting.
+                const possibleLevels = [];
+                for (let i = 1; i <= maxLevel; i++) {
+                    // level 1 (value 2) gets weight 100, level 2 (value 4) gets 50, level 3 (value 8) gets 25...
+                    const weight = Math.floor(200 / Math.pow(2, i));
+                    for (let j = 0; j < weight; j++) possibleLevels.push(i);
+                }
+                const randomLevel = possibleLevels[Math.floor(Math.random() * possibleLevels.length)];
+                newValue = Math.pow(2, randomLevel);
             } else {
                 newValue = Math.random() < 0.9 ? 2 : 4;
             }
@@ -94,6 +102,25 @@ export class GameLogic {
                 isMerged: false
             };
         }
+    }
+
+    public isGameOver(): boolean {
+        // 1. Check for empty cells
+        if (this.grid.some(t => t === null)) return false;
+
+        // 2. Check for possible merges
+        const size = 4;
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                const current = this.grid[r * size + c]!.value;
+                // Check right
+                if (c < size - 1 && current === this.grid[r * size + c + 1]!.value) return false;
+                // Check down
+                if (r < size - 1 && current === this.grid[(r + 1) * size + c]!.value) return false;
+            }
+        }
+
+        return true;
     }
 
     public move(direction: 'left' | 'right' | 'up' | 'down'): boolean {

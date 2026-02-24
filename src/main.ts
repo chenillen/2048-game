@@ -70,6 +70,11 @@ function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
     if (game.move(direction)) {
         render();
         checkCelebration();
+        if (game.isGameOver()) {
+            setTimeout(() => {
+                alert(`Game Over! Final Score: ${game.getScore()}`);
+            }, 500);
+        }
     }
 }
 
