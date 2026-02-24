@@ -130,6 +130,7 @@ function triggerConfetti() {
 
 // Global reset for the button
 (window as any).resetGame = () => {
+    gameOverModal.classList.add('hidden');
     playerNameInput.value = game.getPlayerName();
     nameModal.classList.remove('hidden');
     playerNameInput.focus();
