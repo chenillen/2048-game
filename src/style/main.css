@@ -191,10 +191,6 @@ h1 {
     fill: currentColor;
 }
 
-.icon-btn.off {
-    background: #bbada0;
-}
-
 .grid-container {
     width: 500px;
     height: 500px;

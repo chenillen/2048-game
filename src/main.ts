@@ -11,9 +11,6 @@ const finalScoreDisplay = document.getElementById('final-score')!;
 const nameModal = document.getElementById('name-modal')!;
 const playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
 const startGameBtn = document.getElementById('start-game-btn')!;
-const musicToggle = document.getElementById('music-toggle')!;
-const musicOnIcon = document.getElementById('music-on-icon')!;
-const musicOffIcon = document.getElementById('music-off-icon')!;
 const undoBtn = document.getElementById('undo-btn') as HTMLButtonElement;
 const diffOptions = document.querySelectorAll('.diff-option');
 
@@ -22,63 +19,9 @@ let selectedDifficulty: Difficulty = 'easy';
 
 // Sound Effects
 const sfx = {
-    move: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'),
-    merge: new Audio('https://assets.mixkit.co/active_storage/sfx/2016/2016-preview.mp3'),
     celebrate: new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'),
     click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
 };
-
-// Music Logic
-const tracks = [
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
-    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
-];
-
-const musicAudio = new Audio();
-musicAudio.volume = 0.4;
-let isMusicOn = false;
-
-function playRandomTrack() {
-    if (!isMusicOn) return;
-    const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-    musicAudio.src = randomTrack;
-    musicAudio.play().catch(() => {
-        isMusicOn = false;
-        updateMusicUI();
-    });
-}
-
-musicAudio.onended = () => playRandomTrack();
-
-function updateMusicUI() {
-    musicToggle.classList.toggle('off', !isMusicOn);
-    if (isMusicOn) {
-        musicOnIcon.classList.remove('hidden');
-        musicOffIcon.classList.add('hidden');
-    } else {
-        musicOnIcon.classList.add('hidden');
-        musicOffIcon.classList.remove('hidden');
-    }
-}
-
-musicToggle.addEventListener('click', () => {
-    isMusicOn = !isMusicOn;
-    if (isMusicOn) {
-        if (!musicAudio.src) playRandomTrack();
-        else musicAudio.play();
-    } else {
-        musicAudio.pause();
-    }
-    updateMusicUI();
-});
 
 // Difficulty Selection
 diffOptions.forEach(btn => {
@@ -117,20 +60,16 @@ function render() {
             el.id = `tile-${tile.id}`;
             el.classList.add('tile');
             
-            // Fix: Initial position with NO transitions to prevent top-left flash
             el.style.transition = 'none';
             el.style.width = `${cellSize}px`;
             el.style.height = `${cellSize}px`;
             el.style.transform = `translate(${left}px, ${top}px)`;
             
-            // Separating the internal pop from the position movement
             const inner = document.createElement('div');
             inner.classList.add('tile-inner');
             el.appendChild(inner);
             
             gridDisplay.appendChild(el);
-            
-            // Force reflow
             el.offsetHeight; 
             el.style.transition = '';
         }
@@ -173,17 +112,6 @@ function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
     
     const result = game.move(direction);
     if (result.moved) {
-        if (result.merged) {
-            sfx.merge.currentTime = 0;
-            sfx.merge.play();
-            // Shorten the sound effect to 0.5s as requested
-            setTimeout(() => {
-                sfx.merge.pause();
-            }, 500);
-        } else {
-            sfx.move.currentTime = 0;
-            sfx.move.play();
-        }
         render();
         checkCelebration();
     }
@@ -198,7 +126,6 @@ function checkCelebration() {
         if (tile && milestones.includes(tile.value) && !celebrated.has(tile.value)) {
             celebrated.add(tile.value);
             game.saveState();
-            sfx.celebrate.play();
             triggerConfetti();
             break;
         }
@@ -206,6 +133,7 @@ function checkCelebration() {
 }
 
 function triggerConfetti() {
+    sfx.celebrate.play();
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -220,7 +148,6 @@ function triggerConfetti() {
     }, 250);
 }
 
-// Global reset for the button
 (window as any).resetGame = () => {
     sfx.click.play();
     gameOverModal.classList.add('hidden');
@@ -235,7 +162,6 @@ startGameBtn.addEventListener('click', () => {
     game.setPlayerName(name);
     nameModal.classList.add('hidden');
     game.init(false, selectedDifficulty);
-    if (isMusicOn && !musicAudio.src) playRandomTrack();
     render();
 });
 
