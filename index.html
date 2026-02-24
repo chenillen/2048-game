@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 - Refactored</title>
-  <script type="module" crossorigin src="./assets/index-Dp6wwLNk.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CjfaI2E4.css">
+  <script type="module" crossorigin src="./assets/index-CgcpjA24.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DnULlAeN.css">
 </head>
 <body>
     <div class="container">
@@ -21,7 +21,7 @@
                     <button type="button" class="diff-option" data-value="hard">Hard</button>
                 </div>
                 <div class="modal-buttons">
-                    <button id="start-game-btn">Start</button>
+                    <button id="start-game-btn">Start Game</button>
                 </div>
             </div>
         </div>
@@ -34,12 +34,18 @@
                 <button onclick="resetGame()">Try Again</button>
             </div>
         </div>
+
         <div class="header">
             <div class="header-top">
                 <h1>2048</h1>
                 <div class="header-buttons">
-                    <button id="undo-btn" class="icon-btn" title="Undo (ALT+Z)">↩️ Undo</button>
-                    <button id="music-toggle" class="icon-btn">🎵 On</button>
+                    <button id="undo-btn" class="icon-btn" title="Undo (ALT+Z)">
+                        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                    </button>
+                    <button id="music-toggle" class="icon-btn off" title="Toggle Music">
+                        <svg id="music-on-icon" viewBox="0 0 24 24" class="hidden"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                        <svg id="music-off-icon" viewBox="0 0 24 24"><path d="M4.27 3L3 4.27l9 9v.28c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4v-1.73L19.73 21 21 19.73 4.27 3zM14 7h4V3h-6v5.18l2 2V7z"/></svg>
+                    </button>
                 </div>
             </div>
             <div class="score-panel">
@@ -65,12 +71,12 @@
         <div class="controls">
             <div class="instructions">
                 <strong>New Game:</strong> ALT + N<br>
-                <strong>Move:</strong> Arrow Keys / Swipe / Drag
+                <strong>Move:</strong> Arrow Keys / Swipe
             </div>
             <button onclick="resetGame()">New Game</button>
         </div>
         <div class="footer">
-            v1.3.0-multimode<br>
+            v1.6.0-pro<br>
             &copy; 2026 Marvis LLC<br>
             Made with ❤️
         </div>
