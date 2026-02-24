@@ -12,6 +12,8 @@ const nameModal = document.getElementById('name-modal')!;
 const playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
 const startGameBtn = document.getElementById('start-game-btn')!;
 const musicToggle = document.getElementById('music-toggle')!;
+const musicOnIcon = document.getElementById('music-on-icon')!;
+const musicOffIcon = document.getElementById('music-off-icon')!;
 const undoBtn = document.getElementById('undo-btn') as HTMLButtonElement;
 const diffOptions = document.querySelectorAll('.diff-option');
 
@@ -41,7 +43,7 @@ const tracks = [
 ];
 
 const musicAudio = new Audio();
-musicAudio.loop = false;
+musicAudio.volume = 0.4;
 let isMusicOn = false;
 
 function playRandomTrack() {
@@ -57,8 +59,14 @@ function playRandomTrack() {
 musicAudio.onended = () => playRandomTrack();
 
 function updateMusicUI() {
-    musicToggle.innerText = isMusicOn ? '🎵 On' : '🎵 Off';
     musicToggle.classList.toggle('off', !isMusicOn);
+    if (isMusicOn) {
+        musicOnIcon.classList.remove('hidden');
+        musicOffIcon.classList.add('hidden');
+    } else {
+        musicOnIcon.classList.add('hidden');
+        musicOffIcon.classList.remove('hidden');
+    }
 }
 
 musicToggle.addEventListener('click', () => {
@@ -84,13 +92,12 @@ diffOptions.forEach(btn => {
 
 function render() {
     const size = gridDisplay.clientWidth;
-    const padding = size * 0.0375;
+    const padding = size <= 520 ? 6 : size * 0.0375;
     const cellSize = (size - padding * 5) / 4;
     const step = cellSize + padding;
 
     const currentIds = new Set(game.getGrid().filter(t => t !== null).map(t => t!.id));
     
-    // Cleanup removed elements
     gridDisplay.querySelectorAll('.tile').forEach(el => {
         const id = parseInt(el.id.split('-')[1]);
         if (!currentIds.has(id)) el.remove();
@@ -110,32 +117,36 @@ function render() {
             el.id = `tile-${tile.id}`;
             el.classList.add('tile');
             
-            // Create inner div for animations and content
-            const inner = document.createElement('div');
-            inner.classList.add('tile-inner');
-            el.appendChild(inner);
-
-            // Set fixed size and initial position on outer wrapper
+            // Fix: Initial position with NO transitions to prevent top-left flash
+            el.style.transition = 'none';
             el.style.width = `${cellSize}px`;
             el.style.height = `${cellSize}px`;
             el.style.transform = `translate(${left}px, ${top}px)`;
             
-            // Add directly without transition to avoid top-left ghosting
+            // Separating the internal pop from the position movement
+            const inner = document.createElement('div');
+            inner.classList.add('tile-inner');
+            el.appendChild(inner);
+            
             gridDisplay.appendChild(el);
+            
+            // Force reflow
+            el.offsetHeight; 
+            el.style.transition = '';
         }
 
         const inner = el.querySelector('.tile-inner') as HTMLDivElement;
         inner.innerText = tile.value.toString();
-        
-        // Update classes on the outer element for styling
         el.className = `tile tile-${tile.value}`;
         
         const digits = tile.value.toString().length;
-        if (digits >= 4) el.classList.add(`tile-digits-${digits}`);
+        if (digits >= 3) el.classList.add(`tile-digits-${digits}`);
+        
         if (tile.isNew) el.classList.add('tile-new');
         if (tile.isMerged) el.classList.add('tile-merged');
 
-        // Update position using translate on outer wrapper
+        el.style.width = `${cellSize}px`;
+        el.style.height = `${cellSize}px`;
         el.style.transform = `translate(${left}px, ${top}px)`;
     });
 
@@ -165,6 +176,10 @@ function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
         if (result.merged) {
             sfx.merge.currentTime = 0;
             sfx.merge.play();
+            // Shorten the sound effect to 0.5s as requested
+            setTimeout(() => {
+                sfx.merge.pause();
+            }, 500);
         } else {
             sfx.move.currentTime = 0;
             sfx.move.play();
@@ -205,6 +220,7 @@ function triggerConfetti() {
     }, 250);
 }
 
+// Global reset for the button
 (window as any).resetGame = () => {
     sfx.click.play();
     gameOverModal.classList.add('hidden');
@@ -240,10 +256,12 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') handleInput('right');
     if (e.key === 'ArrowUp') handleInput('up');
     if (e.key === 'ArrowDown') handleInput('down');
+    
     if (e.altKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         (window as any).resetGame();
     }
+    
     if (e.altKey && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         undoBtn.click();
