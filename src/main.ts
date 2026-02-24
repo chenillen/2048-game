@@ -35,11 +35,20 @@ function render() {
             el = document.createElement('div');
             el.id = `tile-${tile.id}`;
             el.classList.add('tile');
-            // Set initial position before appending to avoid transition from (0,0)
+            
+            // Critical fix: force initial position without transition
+            el.style.transition = 'none';
             el.style.width = `${cellSize}px`;
             el.style.height = `${cellSize}px`;
             el.style.transform = `translate(${left}px, ${top}px)`;
+            
             gridDisplay.appendChild(el);
+            
+            // Force reflow
+            el.offsetHeight; 
+            
+            // Restore transition
+            el.style.transition = '';
         }
 
         el.innerText = tile.value.toString();
