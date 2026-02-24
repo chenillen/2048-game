@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 - Refactored</title>
-  <script type="module" crossorigin src="./assets/index-DOZyfDxe.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-D9hZ8cYr.css">
+  <script type="module" crossorigin src="./assets/index-B3dGz9qT.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-D4VesWeh.css">
 </head>
 <body>
     <div class="container">
@@ -15,6 +15,11 @@
                 <h2>New Game</h2>
                 <p>Enter your name:</p>
                 <input type="text" id="player-name-input" maxlength="15" placeholder="Your Name">
+                <p>Select Difficulty:</p>
+                <div class="difficulty-selector">
+                    <button type="button" class="diff-option active" data-value="easy">Easy</button>
+                    <button type="button" class="diff-option" data-value="hard">Hard</button>
+                </div>
                 <div class="modal-buttons">
                     <button id="start-game-btn">Start</button>
                 </div>
@@ -30,7 +35,10 @@
             </div>
         </div>
         <div class="header">
-            <h1>2048</h1>
+            <div class="header-top">
+                <h1>2048</h1>
+                <button id="music-toggle" class="icon-btn">🎵 On</button>
+            </div>
             <div class="score-panel">
                 <div class="score-container">
                     <span class="score-label">Score</span>
@@ -59,7 +67,7 @@
             <button onclick="resetGame()">New Game</button>
         </div>
         <div class="footer">
-            v1.2.0-hardmode<br>
+            v1.3.0-multimode<br>
             &copy; 2026 Marvis LLC<br>
             Made with ❤️
         </div>
