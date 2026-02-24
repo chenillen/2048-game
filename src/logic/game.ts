@@ -72,8 +72,23 @@ export class GameLogic {
         const emptyIndices = this.grid.map((v, i) => v === null ? i : null).filter((v): v is number => v !== null);
         if (emptyIndices.length > 0) {
             const randomIdx = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+            
+            // "Hard Mode" Logic:
+            // New tiles can be any power of 2 up to max_tile / 2.
+            const maxVal = Math.max(...this.grid.map(t => t ? t.value : 0));
+            let newValue = 2;
+
+            if (maxVal > 4) {
+                const maxPower = Math.log2(maxVal);
+                // Random power between 1 and (maxPower - 1)
+                const randomPower = Math.floor(Math.random() * (maxPower - 1)) + 1;
+                newValue = Math.pow(2, randomPower);
+            } else {
+                newValue = Math.random() < 0.9 ? 2 : 4;
+            }
+
             this.grid[randomIdx] = {
-                value: Math.random() < 0.9 ? 2 : 4,
+                value: newValue,
                 id: this.tileCounter++,
                 isNew: true,
                 isMerged: false
