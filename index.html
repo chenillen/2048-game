@@ -7,7 +7,19 @@
 </head>
 <body>
     <div class="container">
-        <!-- ... existing ... -->
+        <!-- New Name Modal -->
+        <div id="name-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>New Game</h2>
+                <p>Enter your name:</p>
+                <input type="text" id="player-name-input" maxlength="15" placeholder="Your Name">
+                <div class="modal-buttons">
+                    <button id="start-game-btn">Start</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Over Modal -->
         <div id="game-over-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>Game Over!</h2>
@@ -39,7 +51,7 @@
 
         <div class="controls">
             <div class="instructions">
-                <strong>New Game:</strong> CMD + N / CTRL + N<br>
+                <strong>New Game:</strong> ALT + N<br>
                 <strong>Move:</strong> Arrow Keys / Swipe / Drag
             </div>
             <button onclick="resetGame()">New Game</button>
