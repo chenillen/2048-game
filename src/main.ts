@@ -29,11 +29,15 @@ function render() {
         const top = padding + row * step;
         const left = padding + col * step;
 
-        let el = document.getElementById(`tile-${tile.id}`);
+        let el = document.getElementById(`tile-${tile.id}`) as HTMLDivElement;
         if (!el) {
             el = document.createElement('div');
             el.id = `tile-${tile.id}`;
             el.classList.add('tile');
+            // Set initial position before appending to avoid transition from (0,0)
+            el.style.width = `${cellSize}px`;
+            el.style.height = `${cellSize}px`;
+            el.style.transform = `translate(${left}px, ${top}px)`;
             gridDisplay.appendChild(el);
         }
 
