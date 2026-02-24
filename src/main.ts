@@ -58,6 +58,13 @@ function render() {
 
         el.innerText = tile.value.toString();
         el.className = `tile tile-${tile.value}`;
+        
+        // Add digit-based scaling class
+        const digits = tile.value.toString().length;
+        if (digits >= 4) {
+            el.classList.add(`tile-digits-${digits}`);
+        }
+        
         if (tile.isNew) el.classList.add('tile-new');
         if (tile.isMerged) el.classList.add('tile-merged');
 
