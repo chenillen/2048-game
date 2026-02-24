@@ -11,74 +11,65 @@ const finalScoreDisplay = document.getElementById('final-score')!;
 const nameModal = document.getElementById('name-modal')!;
 const playerNameInput = document.getElementById('player-name-input') as HTMLInputElement;
 const startGameBtn = document.getElementById('start-game-btn')!;
-const musicToggleBtn = document.getElementById('music-toggle')!;
+const musicToggle = document.getElementById('music-toggle')!;
+const diffOptions = document.querySelectorAll('.diff-option');
+
 const game = new GameLogic();
+let selectedDifficulty: Difficulty = 'easy';
 
-// --- Audio Controller ---
-class AudioController {
-    private tracks = [
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
-        'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
-    ];
-    private audio = new Audio();
-    private isMuted = true;
-    private currentTrackIdx = 0;
+// Music Logic
+const tracks = [
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
+    'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+];
 
-    constructor() {
-        this.audio.loop = false;
-        this.audio.onended = () => this.next();
-        
-        // Load initial state
-        const savedMute = localStorage.getItem('2048-music-muted');
-        this.isMuted = savedMute === null ? true : savedMute === 'true';
-        this.updateBtn();
-    }
+const audio = new Audio();
+audio.loop = true;
+let isMusicOn = false;
 
-    public start() {
-        if (!this.isMuted) {
-            this.play();
-        }
-    }
-
-    private play() {
-        this.audio.src = this.tracks[this.currentTrackIdx];
-        this.audio.play().catch(e => console.log("Autoplay prevented:", e));
-    }
-
-    private next() {
-        this.currentTrackIdx = (this.currentTrackIdx + 1) % this.tracks.length;
-        if (!this.isMuted) this.play();
-    }
-
-    public toggle() {
-        this.isMuted = !this.isMuted;
-        localStorage.setItem('2048-music-muted', this.isMuted.toString());
-        if (this.isMuted) {
-            this.audio.pause();
-        } else {
-            if (!this.audio.src) {
-                this.play();
-            } else {
-                this.audio.play();
-            }
-        }
-        this.updateBtn();
-    }
-
-    private updateBtn() {
-        musicToggleBtn.innerText = this.isMuted ? '🎵 Off' : '🎵 On';
-    }
+function playRandomTrack() {
+    if (!isMusicOn) return;
+    const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+    audio.src = randomTrack;
+    audio.play().catch(() => {
+        console.log("Auto-play blocked. User needs to interact first.");
+        isMusicOn = false;
+        updateMusicUI();
+    });
 }
 
-const audio = new AudioController();
+function updateMusicUI() {
+    musicToggle.innerText = isMusicOn ? '🎵 On' : '🎵 Off';
+    musicToggle.classList.toggle('off', !isMusicOn);
+}
+
+musicToggle.addEventListener('click', () => {
+    isMusicOn = !isMusicOn;
+    if (isMusicOn) {
+        if (!audio.src) playRandomTrack();
+        else audio.play();
+    } else {
+        audio.pause();
+    }
+    updateMusicUI();
+});
+
+// Difficulty Selection
+diffOptions.forEach(btn => {
+    btn.addEventListener('click', () => {
+        diffOptions.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedDifficulty = btn.getAttribute('data-value') as Difficulty;
+    });
+});
 
 function render() {
     const size = gridDisplay.clientWidth;
@@ -147,7 +138,6 @@ function isModalOpen() {
 
 function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
     if (game.isGameOver() || isModalOpen()) return;
-    
     if (game.move(direction)) {
         render();
         checkCelebration();
@@ -173,7 +163,7 @@ function triggerConfetti() {
     const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-    function randomInRange(min: number, max: number) { return Math.random() * (max - min) + min; }
+    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
     const interval: any = setInterval(function() {
         const timeLeft = animationEnd - Date.now();
@@ -185,6 +175,7 @@ function triggerConfetti() {
 }
 
 (window as any).resetGame = () => {
+    gameOverModal.classList.add('hidden');
     playerNameInput.value = game.getPlayerName();
     nameModal.classList.remove('hidden');
     playerNameInput.focus();
@@ -192,15 +183,12 @@ function triggerConfetti() {
 
 startGameBtn.addEventListener('click', () => {
     const name = playerNameInput.value.trim() || 'Player';
-    const diff = (document.querySelector('input[name="difficulty"]:checked') as HTMLInputElement).value as Difficulty;
     game.setPlayerName(name);
     nameModal.classList.add('hidden');
-    game.init(false, diff);
-    audio.start();
+    game.init(false, selectedDifficulty);
+    if (isMusicOn && !audio.src) playRandomTrack();
     render();
 });
-
-musicToggleBtn.addEventListener('click', () => audio.toggle());
 
 playerNameInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') startGameBtn.click();
@@ -243,5 +231,4 @@ document.addEventListener('mouseup', e => handleTouch(e.clientX, e.clientY));
 window.addEventListener('resize', render);
 
 game.init();
-if (game.getGrid().length > 0) audio.start();
 render();

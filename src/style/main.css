@@ -273,6 +273,51 @@ button {
     line-height: 1.6;
 }
 
+.difficulty-selector {
+    display: flex;
+    width: 280px;
+    background: #bbada0;
+    border-radius: 3px;
+    padding: 4px;
+    margin: 0 auto 20px auto;
+}
+
+.diff-option {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    color: #eee4da;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+}
+
+.diff-option.active {
+    background: #f9f6f2;
+    color: #776e65;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.icon-btn {
+    background: #8f7a66;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+}
+
 @media (max-height: 750px) {
     .footer {
         display: none;
