@@ -4,6 +4,7 @@ import { GameLogic } from './logic/game';
 const gridDisplay = document.getElementById('grid')!;
 const scoreDisplay = document.getElementById('score')!;
 const bestDisplay = document.getElementById('best')!;
+const bestNameDisplay = document.getElementById('best-name')!;
 const game = new GameLogic();
 
 function render() {
@@ -48,6 +49,7 @@ function render() {
 
     scoreDisplay.innerText = game.getScore().toString();
     bestDisplay.innerText = game.getBestScore().toString();
+    bestNameDisplay.innerText = game.getPlayerName();
 }
 
 function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
