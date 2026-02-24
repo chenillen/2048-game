@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2048 - Refactored</title>
-  <script type="module" crossorigin src="./assets/index-xTUTfGeB.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BCflN0Wc.css">
+  <script type="module" crossorigin src="./assets/index-Mtwi46rf.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-B-2mA_P8.css">
 </head>
 <body>
     <div class="container">
+        <!-- ... existing ... -->
+        <div id="game-over-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Game Over!</h2>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <button onclick="resetGame()">Try Again</button>
+            </div>
+        </div>
         <div class="header">
             <h1>2048</h1>
             <div class="score-panel">
@@ -17,7 +25,7 @@
                     <span id="score" class="score-value">0</span>
                 </div>
                 <div class="best-container">
-                    <span class="score-label">Best</span>
+                    <span class="score-label">Best (<span id="best-name">Player</span>)</span>
                     <span id="best" class="score-value">0</span>
                 </div>
             </div>
@@ -37,6 +45,11 @@
                 <strong>Move:</strong> Arrow Keys / Swipe / Drag
             </div>
             <button onclick="resetGame()">New Game</button>
+        </div>
+        <div class="footer">
+            v1.2.0-hardmode<br>
+            &copy; 2026 Marvis LLC<br>
+            Made with ❤️
         </div>
     </div>
 </body>
