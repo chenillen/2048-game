@@ -13,10 +13,10 @@
                 <h2>New Game</h2>
                 <p>Enter your name:</p>
                 <input type="text" id="player-name-input" maxlength="15" placeholder="Your Name">
-                <p>Difficulty:</p>
-                <div class="difficulty-options">
-                    <label><input type="radio" name="difficulty" value="easy" checked> Easy</label>
-                    <label><input type="radio" name="difficulty" value="hard"> Hard</label>
+                <p>Select Difficulty:</p>
+                <div class="difficulty-selector">
+                    <button type="button" class="diff-option active" data-value="easy">Easy</button>
+                    <button type="button" class="diff-option" data-value="hard">Hard</button>
                 </div>
                 <div class="modal-buttons">
                     <button id="start-game-btn">Start</button>
