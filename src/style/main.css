@@ -106,18 +106,19 @@ h1 {
     font-size: 80px; 
     font-weight: bold;
     margin: 0; 
-    line-height: 0.7;
+    line-height: 1;
     letter-spacing: -3px;
 }
 
 .score-panel {
     display: flex;
     gap: 5px;
+    align-items: center;
 }
 
 .score-container, .best-container {
     background: #bbada0;
-    padding: 15px 25px;
+    padding: 10px 20px;
     border-radius: 3px;
     color: white;
     text-align: center;
@@ -126,12 +127,12 @@ h1 {
 
 .score-label { 
     text-transform: uppercase; 
-    font-size: 13px; 
+    font-size: 11px; 
     font-weight: bold;
     display: block; 
     color: #eee4da;
 }
-.score-value { font-size: 25px; font-weight: bold; }
+.score-value { font-size: 20px; font-weight: bold; }
 
 .grid-container {
     width: 500px;
@@ -168,6 +169,29 @@ h1 {
     user-select: none;
 }
 
+/* Value-based tile styling */
+.tile-2 { background: #eee4da; color: #776e65; }
+.tile-4 { background: #ede0c8; color: #776e65; }
+.tile-8 { background: #f2b179; color: #f9f6f2; }
+.tile-16 { background: #f59563; color: #f9f6f2; }
+.tile-32 { background: #f67c5f; color: #f9f6f2; }
+.tile-64 { background: #f65e3b; color: #f9f6f2; }
+.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 45px; }
+.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 45px; }
+.tile-512 { background: #edc850; color: #f9f6f2; font-size: 45px; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 35px; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 35px; }
+.tile-4096 { background: #3c3a32; color: #f9f6f2; font-size: 35px; }
+.tile-8192 { background: #3c3a32; color: #f9f6f2; font-size: 35px; }
+.tile-16384 { background: #3c3a32; color: #f9f6f2; font-size: 30px; }
+.tile-32768 { background: #3c3a32; color: #f9f6f2; font-size: 30px; }
+.tile-65536 { background: #3c3a32; color: #f9f6f2; font-size: 25px; }
+
+/* Digit-based font scaling helper classes */
+.tile-digits-4 { font-size: 35px !important; }
+.tile-digits-5 { font-size: 25px !important; }
+.tile-digits-6 { font-size: 20px !important; }
+
 @keyframes pop {
     0% { transform: scale(0); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
@@ -181,18 +205,6 @@ h1 {
 
 .tile-new { animation: pop 200ms ease-in-out; }
 .tile-merged { animation: merge 200ms ease-in-out; z-index: 20; }
-
-.tile-2 { background: #eee4da; color: #776e65; }
-.tile-4 { background: #ede0c8; color: #776e65; }
-.tile-8 { background: #f2b179; color: #f9f6f2; }
-.tile-16 { background: #f59563; color: #f9f6f2; }
-.tile-32 { background: #f67c5f; color: #f9f6f2; }
-.tile-64 { background: #f65e3b; color: #f9f6f2; }
-.tile-128 { background: #edcf72; color: #f9f6f2; font-size: 45px; }
-.tile-256 { background: #edcc61; color: #f9f6f2; font-size: 45px; }
-.tile-512 { background: #edc850; color: #f9f6f2; font-size: 45px; }
-.tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 35px; }
-.tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 35px; }
 
 .controls {
     margin-top: 25px;
@@ -220,11 +232,11 @@ button {
 }
 
 .footer {
-    padding-top: 40px;
+    padding-top: 30px;
     font-size: 14px;
     color: #776e65;
     text-align: center;
-    line-height: 1.8;
+    line-height: 1.6;
 }
 
 @media (max-height: 750px) {
@@ -235,8 +247,39 @@ button {
 
 @media (max-width: 520px) {
     .container { width: 320px; }
+    
+    .header {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    h1 { 
+        font-size: 60px; 
+        margin-bottom: 5px;
+    }
+
     .grid-container { width: 320px; height: 320px; padding: 10px; gap: 10px; }
-    h1 { font-size: 40px; }
+    
     .tile { font-size: 35px; }
-    .score-container, .best-container { padding: 10px 15px; }
+    .tile-digits-4 { font-size: 24px !important; }
+    .tile-digits-5 { font-size: 18px !important; }
+    .tile-digits-6 { font-size: 15px !important; }
+
+    .score-container, .best-container { padding: 8px 12px; }
+    .score-value { font-size: 16px; }
+    
+    .instructions {
+        font-size: 14px;
+        text-align: center;
+    }
+    
+    .footer {
+        font-size: 11px;
+        padding-top: 15px;
+    }
+
+    .modal-content h2 { font-size: 40px; }
+    .modal-content p { font-size: 18px; }
 }
