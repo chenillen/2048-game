@@ -29,7 +29,23 @@
             <div class="modal-content">
                 <h2>Game Over!</h2>
                 <p>Final Score: <span id="final-score">0</span></p>
-                <button onclick="resetGame()">Try Again</button>
+                <div class="modal-buttons">
+                    <button onclick="resetGame()">Try Again</button>
+                    <button id="game-over-leaderboard-btn">View Leaderboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Modal -->
+        <div id="leaderboard-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Top 10 Scores</h2>
+                <div class="difficulty-tabs">
+                    <button class="lb-tab active" data-mode="easy">Easy</button>
+                    <button class="lb-tab" data-mode="hard">Hard</button>
+                </div>
+                <ul id="leaderboard-list">Loading...</ul>
+                <button id="close-leaderboard-btn">Close</button>
             </div>
         </div>
 
@@ -39,6 +55,9 @@
                 <div class="header-buttons">
                     <button id="undo-btn" class="icon-btn" title="Undo (ALT+Z)">
                         <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                    </button>
+                    <button id="leaderboard-btn" class="icon-btn" title="Leaderboard">
+                        <svg viewBox="0 0 24 24"><path d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 6h4v8H4v-8zm16 8h-4v-6h4v6z"/></svg>
                     </button>
                 </div>
             </div>
@@ -70,7 +89,7 @@
             <button onclick="resetGame()">New Game</button>
         </div>
         <div class="footer">
-            v1.7.0-haptic<br>
+            v2.0.0-db<br>
             &copy; 2026 Marvis LLC<br>
             Made with ❤️
         </div>

@@ -1,6 +1,7 @@
 import './style/main.css';
 import { GameLogic, Difficulty } from './logic/game';
 import confetti from 'canvas-confetti';
+import { getLeaderboard, submitScore, ScoreEntry } from './api';
 
 const gridDisplay = document.getElementById('grid')!;
 const scoreDisplay = document.getElementById('score')!;
@@ -14,8 +15,17 @@ const startGameBtn = document.getElementById('start-game-btn')!;
 const undoBtn = document.getElementById('undo-btn') as HTMLButtonElement;
 const diffOptions = document.querySelectorAll('.diff-option');
 
+// Leaderboard Elements
+const leaderboardBtn = document.getElementById('leaderboard-btn')!;
+const leaderboardModal = document.getElementById('leaderboard-modal')!;
+const closeLeaderboardBtn = document.getElementById('close-leaderboard-btn')!;
+const leaderboardList = document.getElementById('leaderboard-list')!;
+const lbTabs = document.querySelectorAll('.lb-tab');
+const gameOverLbBtn = document.getElementById('game-over-leaderboard-btn')!;
+
 const game = new GameLogic();
 let selectedDifficulty: Difficulty = 'easy';
+let currentLbMode: string = 'easy';
 
 // Sound Effects
 const sfx = {
@@ -23,7 +33,7 @@ const sfx = {
     click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3')
 };
 
-// Difficulty Selection
+// Difficulty Selection for New Game
 diffOptions.forEach(btn => {
     btn.addEventListener('click', () => {
         sfx.click.play();
@@ -33,19 +43,78 @@ diffOptions.forEach(btn => {
     });
 });
 
+// Leaderboard Tabs
+lbTabs.forEach(btn => {
+    btn.addEventListener('click', async () => {
+        sfx.click.play();
+        lbTabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLbMode = btn.getAttribute('data-mode') || 'easy';
+        await refreshLeaderboard(currentLbMode);
+    });
+});
+
+async function refreshLeaderboard(mode: string) {
+    leaderboardList.innerHTML = 'Loading...';
+    const scores = await getLeaderboard(mode);
+    leaderboardList.innerHTML = '';
+    
+    if (scores.length === 0) {
+        leaderboardList.innerHTML = '<li>No scores yet!</li>';
+        return;
+    }
+
+    scores.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <div><span class="rank">#${index + 1}</span> ${entry.user.name}</div>
+            <div>${entry.score}</div>
+        `;
+        leaderboardList.appendChild(li);
+    });
+}
+
+function openLeaderboard() {
+    leaderboardModal.classList.remove('hidden');
+    refreshLeaderboard(currentLbMode);
+}
+
+function closeLeaderboard() {
+    leaderboardModal.classList.add('hidden');
+}
+
+leaderboardBtn.addEventListener('click', () => {
+    sfx.click.play();
+    openLeaderboard();
+});
+
+closeLeaderboardBtn.addEventListener('click', () => {
+    sfx.click.play();
+    closeLeaderboard();
+});
+
+gameOverLbBtn.addEventListener('click', () => {
+    sfx.click.play();
+    gameOverModal.classList.add('hidden'); // Hide game over modal first
+    openLeaderboard();
+});
+
 function render() {
     const size = gridDisplay.clientWidth;
-    const padding = size <= 520 ? 6 : size * 0.0375;
+    // Mobile optimization: Less padding on small screens
+    const padding = size <= 520 ? 6 : size * 0.03; 
     const cellSize = (size - padding * 5) / 4;
     const step = cellSize + padding;
 
     const currentIds = new Set(game.getGrid().filter(t => t !== null).map(t => t!.id));
     
+    // Remove stale tiles
     gridDisplay.querySelectorAll('.tile').forEach(el => {
         const id = parseInt(el.id.split('-')[1]);
         if (!currentIds.has(id)) el.remove();
     });
 
+    // Render tiles
     game.getGrid().forEach((tile, i) => {
         if (!tile) return;
 
@@ -70,7 +139,7 @@ function render() {
             el.appendChild(inner);
             
             gridDisplay.appendChild(el);
-            el.offsetHeight; 
+            el.offsetHeight; // force reflow
             el.style.transition = '';
         }
 
@@ -97,14 +166,20 @@ function render() {
 
     if (game.isGameOver()) {
         finalScoreDisplay.innerText = game.getScore().toString();
-        gameOverModal.classList.remove('hidden');
+        if (gameOverModal.classList.contains('hidden')) {
+            gameOverModal.classList.remove('hidden');
+            // Auto submit score
+            submitScore(game.getPlayerName(), game.getScore(), game.getDifficulty());
+        }
     } else {
         gameOverModal.classList.add('hidden');
     }
 }
 
 function isModalOpen() {
-    return !gameOverModal.classList.contains('hidden') || !nameModal.classList.contains('hidden');
+    return !gameOverModal.classList.contains('hidden') || 
+           !nameModal.classList.contains('hidden') ||
+           !leaderboardModal.classList.contains('hidden');
 }
 
 function handleInput(direction: 'left' | 'right' | 'up' | 'down') {
@@ -154,6 +229,7 @@ function triggerConfetti() {
 (window as any).resetGame = () => {
     sfx.click.play();
     gameOverModal.classList.add('hidden');
+    leaderboardModal.classList.add('hidden');
     playerNameInput.value = game.getPlayerName();
     nameModal.classList.remove('hidden');
     playerNameInput.focus();
@@ -181,6 +257,8 @@ playerNameInput.addEventListener('keydown', (e) => {
 
 document.addEventListener('keydown', (e) => {
     if (document.activeElement === playerNameInput) return;
+    if (isModalOpen()) return; // Prevent moves when modals are open
+
     if (e.key === 'ArrowLeft') handleInput('left');
     if (e.key === 'ArrowRight') handleInput('right');
     if (e.key === 'ArrowUp') handleInput('up');
@@ -197,29 +275,44 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Improved Touch Handling
 let startX: number | null, startY: number | null;
 const handleTouch = (x: number, y: number) => {
     if (startX === null || startY === null) return;
     const dx = x - startX;
     const dy = y - startY;
-    const threshold = 30;
-    if (Math.abs(dx) > Math.abs(dy)) {
-        if (Math.abs(dx) > threshold) handleInput(dx > 0 ? 'right' : 'left');
-    } else {
-        if (Math.abs(dy) > threshold) handleInput(dy > 0 ? 'down' : 'up');
+    const threshold = 40; // Increased threshold for better distinction
+    
+    // Only move if swipe is significant
+    if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+            handleInput(dx > 0 ? 'right' : 'left');
+        } else {
+            handleInput(dy > 0 ? 'down' : 'up');
+        }
     }
     startX = startY = null;
 };
 
 document.addEventListener('touchstart', e => {
+    // Only track if not tapping a button or modal
+    if ((e.target as HTMLElement).closest('button') || isModalOpen()) return;
+    
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
+    // Prevent default scrolling only if we are inside the grid
+    if ((e.target as HTMLElement).closest('#grid')) {
+       // e.preventDefault(); // Optional: might block scrolling page
+    }
+}, { passive: false });
+
+document.addEventListener('touchend', e => {
+    if (isModalOpen()) return;
+    handleTouch(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
 }, { passive: true });
-document.addEventListener('touchend', e => handleTouch(e.changedTouches[0].clientX, e.changedTouches[0].clientY), { passive: true });
-document.addEventListener('mousedown', e => { startX = e.clientX; startY = e.clientY; });
-document.addEventListener('mouseup', e => handleTouch(e.clientX, e.clientY));
 
 window.addEventListener('resize', render);
 
+// Initial Load
 game.init();
 render();
