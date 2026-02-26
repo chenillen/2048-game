@@ -64,22 +64,37 @@ export async function getLeaderboard(mode: string = 'normal'): Promise<ScoreEntr
     const filtered = localScores.filter(s => s.mode === validMode);
     
     try {
-        const serverScores = await supabaseRequest(
-            `scores?mode=eq.${validMode}&select=id,score,mode,created_at,user:name&order=score.desc&limit=10`,
+        const scoresData = await supabaseRequest(
+            `scores?mode=eq.${validMode}&select=id,score,mode,created_at,user_id&order=score.desc&limit=10`,
+            { method: 'GET' }
+        );
+        
+        const usersData = await supabaseRequest(
+            `users?select=id,name`,
             { method: 'GET' }
         );
         
         interface SupabaseScore {
+            id: number;
             score: number;
             mode: string;
             created_at: string;
-            user?: { name: string };
+            user_id: number;
         }
         
-        const mapped: ScoreEntry[] = (Array.isArray(serverScores) ? serverScores : []).map((s: SupabaseScore) => ({
+        interface SupabaseUser {
+            id: number;
+            name: string;
+        }
+        
+        const scores = Array.isArray(scoresData) ? scoresData : [];
+        const users = Array.isArray(usersData) ? usersData : [];
+        const userMap = new Map(users.map((u: SupabaseUser) => [u.id, u.name]));
+        
+        const mapped: ScoreEntry[] = scores.map((s: SupabaseScore) => ({
             score: s.score,
             mode: s.mode,
-            user: { name: s.user?.name || 'Anonymous' },
+            user: { name: userMap.get(s.user_id) || 'Anonymous' },
             createdAt: s.created_at,
         }));
         
