@@ -4,6 +4,12 @@ const SUPABASE_URL = 'https://aizqcftuombkakgaaszd.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_6MkGtV8tT5JmsPJq6L297Q_j-YgYQC0';
 const LOCAL_STORAGE_KEY = '2048-leaderboard';
 
+const VALID_MODES = ['normal', 'easy', 'hard'];
+
+function isValidMode(mode: string): boolean {
+    return VALID_MODES.includes(mode);
+}
+
 export interface ScoreEntry {
     id?: number;
     score: number;
@@ -16,9 +22,14 @@ export interface ScoreEntry {
 }
 
 function getLocalLeaderboard(): ScoreEntry[] {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-        return JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch (error) {
+        console.error('Failed to parse local leaderboard:', error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
     return [];
 }
@@ -48,16 +59,24 @@ async function supabaseRequest(endpoint: string, options: RequestInit = {}) {
 }
 
 export async function getLeaderboard(mode: string = 'normal'): Promise<ScoreEntry[]> {
+    const validMode = isValidMode(mode) ? mode : 'normal';
     let localScores = getLocalLeaderboard();
-    const filtered = localScores.filter(s => s.mode === mode);
+    const filtered = localScores.filter(s => s.mode === validMode);
     
     try {
         const serverScores = await supabaseRequest(
-            `scores?mode=eq.${mode}&select=id,score,mode,created_at,user:name&order=score.desc&limit=10`,
+            `scores?mode=eq.${validMode}&select=id,score,mode,created_at,user:name&order=score.desc&limit=10`,
             { method: 'GET' }
         );
         
-        const mapped: ScoreEntry[] = (Array.isArray(serverScores) ? serverScores : []).map((s: any) => ({
+        interface SupabaseScore {
+            score: number;
+            mode: string;
+            created_at: string;
+            user?: { name: string };
+        }
+        
+        const mapped: ScoreEntry[] = (Array.isArray(serverScores) ? serverScores : []).map((s: SupabaseScore) => ({
             score: s.score,
             mode: s.mode,
             user: { name: s.user?.name || 'Anonymous' },
@@ -76,10 +95,22 @@ export async function getLeaderboard(mode: string = 'normal'): Promise<ScoreEntr
 }
 
 export async function submitScore(name: string, score: number, mode: string): Promise<ScoreEntry | null> {
+    const trimmedName = (name || '').trim();
+    if (!trimmedName || trimmedName.length > 50) {
+        console.error('Invalid name');
+        return null;
+    }
+    if (typeof score !== 'number' || score < 0 || !Number.isFinite(score)) {
+        console.error('Invalid score');
+        return null;
+    }
+    
+    const validMode = isValidMode(mode) ? mode : 'normal';
+    
     const newEntry: ScoreEntry = {
         score,
-        mode,
-        user: { name },
+        mode: validMode,
+        user: { name: trimmedName },
         createdAt: new Date().toISOString()
     };
 
@@ -89,7 +120,7 @@ export async function submitScore(name: string, score: number, mode: string): Pr
 
     try {
         let userData = await supabaseRequest(
-            `users?name=eq.${encodeURIComponent(name)}&select=id`,
+            `users?name=eq.${encodeURIComponent(trimmedName)}&select=id`,
             { method: 'GET' }
         );
         
@@ -100,7 +131,7 @@ export async function submitScore(name: string, score: number, mode: string): Pr
         } else {
             const created = await supabaseRequest('users', {
                 method: 'POST',
-                body: JSON.stringify({ name }),
+                body: JSON.stringify({ name: trimmedName }),
             });
             userId = created[0]?.id;
         }
@@ -108,7 +139,7 @@ export async function submitScore(name: string, score: number, mode: string): Pr
         if (userId) {
             await supabaseRequest('scores', {
                 method: 'POST',
-                body: JSON.stringify({ score, mode, user_id: userId }),
+                body: JSON.stringify({ score, mode: validMode, user_id: userId }),
             });
         }
 
