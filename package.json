@@ -1,12 +1,12 @@
 {
-  "name": "2048-game",
+  "name": "4096-game",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A modern take on the classic 2048 puzzle game",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "repository": {
     "type": "git",
@@ -15,7 +15,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/chenillen/2048-game/issues"
   },
@@ -23,11 +22,16 @@
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^25.3.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-static-copy": "^3.2.0"
   },
   "dependencies": {
-    "canvas-confetti": "^1.9.4"
+    "canvas-confetti": "^1.9.4",
+    "next": "^16.1.6",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   }
 }
