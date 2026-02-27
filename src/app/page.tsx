@@ -16,7 +16,7 @@ interface Tile {
 type Grid = (Tile | null)[][];
 
 export default function Home() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const { user, updateGameStats } = useUser();
   const [grid, setGrid] = useState<Grid>([]);
   const [score, setScore] = useState(0);
@@ -158,6 +158,41 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
+  // Touch handling for mobile
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart || showNameModal || gameOver) return;
+    
+    const touchEnd = {
+      x: e.changedTouches[0].clientX,
+      y: e.changedTouches[0].clientY,
+    };
+    
+    const dx = touchEnd.x - touchStart.x;
+    const dy = touchEnd.y - touchStart.y;
+    const minSwipeDistance = 50;
+    
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (Math.abs(dx) > minSwipeDistance) {
+        move(dx > 0 ? 'right' : 'left');
+      }
+    } else {
+      if (Math.abs(dy) > minSwipeDistance) {
+        move(dy > 0 ? 'down' : 'up');
+      }
+    }
+    
+    setTouchStart(null);
+  };
+
   const startNewGame = () => {
     setShowNameModal(true);
   };
@@ -165,58 +200,6 @@ export default function Home() {
   const handleStartGame = () => {
     setShowNameModal(false);
     initGame();
-  };
-
-  const containerStyle: React.CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    minHeight: '100vh',
-    padding: '20px',
-    backgroundColor: theme.colors.background,
-    color: theme.colors.textColor,
-    transition: 'background-color 0.3s, color 0.3s',
-  };
-
-  const headerStyle: React.CSSProperties = {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: '400px',
-    marginBottom: '20px',
-  };
-
-  const titleStyle: React.CSSProperties = {
-    fontSize: '48px',
-    fontWeight: 'bold',
-    color: theme.colors.textColor,
-  };
-
-  const scoreContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '10px',
-    marginBottom: '20px',
-  };
-
-  const scoreBoxStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.tileBorder,
-    padding: '10px 20px',
-    borderRadius: '6px',
-    textAlign: 'center',
-    minWidth: '80px',
-  };
-
-  const gridContainerStyle: React.CSSProperties = {
-    backgroundColor: theme.colors.tileBorder,
-    padding: '10px',
-    borderRadius: '6px',
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '10px',
-    width: '100%',
-    maxWidth: '350px',
-    aspectRatio: '1',
   };
 
   const getTileColor = (value: number) => {
@@ -242,43 +225,79 @@ export default function Home() {
   };
 
   return (
-    <div style={containerStyle}>
-      <div style={headerStyle}>
-        <h1 style={titleStyle}>{theme.name}</h1>
-        <button
-          onClick={toggleTheme}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: theme.colors.tileBackground,
-            color: theme.colors.textColor,
-            borderRadius: '6px',
-            fontSize: '14px',
-          }}
-        >
-          {theme.name === '2048' ? '🎨 4096' : '🎨 2048'}
-        </button>
+    <div 
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        height: '100vh',
+        padding: '10px',
+        backgroundColor: theme.colors.background,
+        color: theme.colors.textColor,
+        transition: 'background-color 0.3s, color 0.3s',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: '360px',
+        marginBottom: '10px',
+      }}>
+        <h1 style={{
+          fontSize: '42px',
+          fontWeight: 'bold',
+          color: theme.colors.textColor,
+          margin: 0,
+        }}>4096</h1>
       </div>
 
-      <div style={scoreContainerStyle}>
-        <div style={scoreBoxStyle}>
-          <div style={{ fontSize: '12px', color: '#eee4da' }}>SCORE</div>
-          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff' }}>{score}</div>
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '10px',
+      }}>
+        <div style={{
+          backgroundColor: theme.colors.tileBorder,
+          padding: '8px 16px',
+          borderRadius: '6px',
+          textAlign: 'center',
+          minWidth: '70px',
+        }}>
+          <div style={{ fontSize: '11px', color: '#eee4da' }}>SCORE</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff' }}>{score}</div>
         </div>
-        <div style={scoreBoxStyle}>
-          <div style={{ fontSize: '12px', color: '#eee4da' }}>BEST</div>
-          <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#fff' }}>{bestScore}</div>
+        <div style={{
+          backgroundColor: theme.colors.tileBorder,
+          padding: '8px 16px',
+          borderRadius: '6px',
+          textAlign: 'center',
+          minWidth: '70px',
+        }}>
+          <div style={{ fontSize: '11px', color: '#eee4da' }}>BEST</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#fff' }}>{bestScore}</div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '8px', 
+        marginBottom: '10px',
+      }}>
         <button
           onClick={() => setDifficulty(difficulty === 'easy' ? 'hard' : 'easy')}
           style={{
-            padding: '8px 16px',
+            padding: '6px 12px',
             backgroundColor: theme.colors.tileBackground,
             color: theme.colors.textColor,
             borderRadius: '6px',
-            fontSize: '14px',
+            fontSize: '13px',
+            border: 'none',
           }}
         >
           {difficulty === 'easy' ? 'Easy' : 'Hard'}
@@ -287,11 +306,12 @@ export default function Home() {
           onClick={undo}
           disabled={history.length === 0}
           style={{
-            padding: '8px 16px',
+            padding: '6px 12px',
             backgroundColor: theme.colors.tileBackground,
             color: theme.colors.textColor,
             borderRadius: '6px',
-            fontSize: '14px',
+            fontSize: '13px',
+            border: 'none',
             opacity: history.length === 0 ? 0.5 : 1,
           }}
         >
@@ -300,18 +320,38 @@ export default function Home() {
         <button
           onClick={startNewGame}
           style={{
-            padding: '8px 16px',
+            padding: '6px 12px',
             backgroundColor: theme.colors.textColor,
             color: '#fff',
             borderRadius: '6px',
-            fontSize: '14px',
+            fontSize: '13px',
+            border: 'none',
           }}
         >
           New Game
         </button>
       </div>
 
-      <div style={gridContainerStyle}>
+      <div 
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          backgroundColor: theme.colors.tileBorder,
+          padding: '8px',
+          borderRadius: '6px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateRows: 'repeat(4, 1fr)',
+          gap: '8px',
+          width: 'min(85vw, 340px)',
+          height: 'min(85vw, 340px)',
+          maxWidth: '340px',
+          maxHeight: '340px',
+          touchAction: 'none',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
+      >
         {grid.map((row, rowIndex) =>
           row.map((tile, colIndex) => (
             <div
@@ -322,10 +362,13 @@ export default function Home() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: tile && tile.value > 100 ? '24px' : '32px',
+                fontSize: tile && tile.value > 100 ? 'min(5vw, 22px)' : 'min(7vw, 28px)',
                 fontWeight: 'bold',
                 color: tile ? getTextColor(tile.value) : 'transparent',
-                transition: 'transform 0.1s',
+                transition: 'all 0.15s ease-in-out',
+                aspectRatio: '1',
+                width: '100%',
+                height: '100%',
               }}
             >
               {tile?.value}
@@ -342,7 +385,7 @@ export default function Home() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)',
+            backgroundColor: 'rgba(0,0,0,0.8)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -350,16 +393,17 @@ export default function Home() {
             zIndex: 100,
           }}
         >
-          <h2 style={{ color: '#fff', fontSize: '48px', marginBottom: '20px' }}>Game Over!</h2>
-          <p style={{ color: '#fff', fontSize: '24px', marginBottom: '20px' }}>Score: {score}</p>
+          <h2 style={{ color: '#fff', fontSize: '36px', marginBottom: '15px' }}>Game Over!</h2>
+          <p style={{ color: '#fff', fontSize: '20px', marginBottom: '20px' }}>Score: {score}</p>
           <button
             onClick={initGame}
             style={{
-              padding: '16px 32px',
+              padding: '12px 24px',
               backgroundColor: theme.colors.textColor,
               color: '#fff',
               borderRadius: '6px',
-              fontSize: '18px',
+              fontSize: '16px',
+              border: 'none',
             }}
           >
             Play Again
@@ -375,7 +419,7 @@ export default function Home() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.7)',
+            backgroundColor: 'rgba(0,0,0,0.8)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -386,37 +430,42 @@ export default function Home() {
           <div
             style={{
               backgroundColor: theme.colors.background,
-              padding: '30px',
+              padding: '25px',
               borderRadius: '8px',
               textAlign: 'center',
+              maxWidth: '300px',
+              width: '90%',
             }}
           >
-            <h2 style={{ marginBottom: '20px', color: theme.colors.textColor }}>Enter Your Name</h2>
+            <h2 style={{ marginBottom: '15px', color: theme.colors.textColor, fontSize: '24px' }}>Enter Your Name</h2>
             <input
               type="text"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Your name"
               style={{
-                padding: '12px',
+                padding: '10px',
                 fontSize: '16px',
                 borderRadius: '6px',
                 border: `1px solid ${theme.colors.tileBorder}`,
-                marginBottom: '20px',
-                width: '200px',
+                marginBottom: '15px',
+                width: '100%',
                 textAlign: 'center',
+                backgroundColor: theme.colors.tileBackground,
+                color: theme.colors.textColor,
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleStartGame()}
             />
-            <br />
             <button
               onClick={handleStartGame}
               style={{
-                padding: '12px 32px',
+                padding: '10px 24px',
                 backgroundColor: theme.colors.textColor,
                 color: '#fff',
                 borderRadius: '6px',
                 fontSize: '16px',
+                border: 'none',
+                width: '100%',
               }}
             >
               Start Game

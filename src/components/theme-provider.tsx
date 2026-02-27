@@ -56,13 +56,17 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [themeName, setThemeName] = useState<ThemeName>('2048');
+  const [themeName, setThemeName] = useState<ThemeName>('4096');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme') as ThemeName;
       if (saved && themes[saved]) {
         setThemeName(saved);
+      } else {
+        // Default to 4096 theme
+        setThemeName('4096');
+        localStorage.setItem('theme', '4096');
       }
     }
   }, []);

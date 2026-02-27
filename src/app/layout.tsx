@@ -4,7 +4,7 @@ import { UserProvider } from '../components/user-context';
 import BottomNav from '../components/bottom-nav';
 
 export const metadata = {
-  title: '4096 Game',
+  title: '4096',
   description: 'A modern take on the classic 2048 puzzle game',
 };
 
@@ -14,11 +14,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" style={{ height: '100%', overflow: 'hidden' }}>
+      <body style={{ 
+        height: '100%', 
+        overflow: 'hidden',
+        margin: 0,
+        padding: 0,
+      }}>
         <ThemeProvider>
           <UserProvider>
-            <main style={{ minHeight: '100vh', paddingBottom: '80px' }}>
+            <main style={{ 
+              height: '100vh', 
+              width: '100vw',
+              overflow: 'hidden',
+              position: 'relative',
+            }}>
               {children}
             </main>
             <BottomNav />
