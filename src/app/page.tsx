@@ -186,7 +186,8 @@ export default function Home() {
       }
     } else {
       if (Math.abs(dy) > minSwipeDistance) {
-        move(dy > 0 ? 'down' : 'up');
+        // Inverted: swiping up (dy < 0) moves tiles UP, swiping down (dy > 0) moves tiles DOWN
+        move(dy < 0 ? 'up' : 'down');
       }
     }
     
