@@ -1,8 +1,0 @@
-{
-  "/_global-error/page": "app/_global-error/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/trpc/route": "app/api/trpc/route.js",
-  "/leaderboard/page": "app/leaderboard/page.js",
-  "/me/page": "app/me/page.js",
-  "/page": "app/page.js"
-}

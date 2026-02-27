@@ -1,8 +1,0 @@
-{
-  "/_global-error/page": "/_global-error",
-  "/_not-found/page": "/_not-found",
-  "/api/trpc/route": "/api/trpc",
-  "/leaderboard/page": "/leaderboard",
-  "/me/page": "/me",
-  "/page": "/"
-}
