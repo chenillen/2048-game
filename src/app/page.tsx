@@ -182,12 +182,13 @@ export default function Home() {
     
     if (Math.abs(dx) > Math.abs(dy)) {
       if (Math.abs(dx) > minSwipeDistance) {
-        move(dx > 0 ? 'right' : 'left');
+        // Inverted X: swipe left moves right, swipe right moves left
+        move(dx > 0 ? 'left' : 'right');
       }
     } else {
       if (Math.abs(dy) > minSwipeDistance) {
-        // Inverted: swiping up (dy < 0) moves tiles UP, swiping down (dy > 0) moves tiles DOWN
-        move(dy < 0 ? 'up' : 'down');
+        // Inverted Y: swipe up moves down, swipe down moves up
+        move(dy < 0 ? 'down' : 'up');
       }
     }
     
