@@ -1,9 +1,9 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages (Classic 2048)
 
 on:
   push:
     branches:
-      - master
+      - classic
 
 permissions:
   contents: read
