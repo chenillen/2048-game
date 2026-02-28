@@ -3,7 +3,7 @@ name: Deploy to Vercel
 on:
   push:
     branches:
-      - feature/4096-nextjs
+      - master
 
 jobs:
   deploy:
