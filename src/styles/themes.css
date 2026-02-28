@@ -1,0 +1,129 @@
+:root {
+  --theme-primary: #f9f6f2;
+  --theme-secondary: #776e65;
+  --theme-background: #faf8ef;
+  --theme-tile-background: #cdc1b4;
+  --theme-tile-border: #bbada0;
+}
+
+[data-theme="4096"] {
+  --theme-primary: #ffffff;
+  --theme-secondary: #2c3e50;
+  --theme-background: #34495e;
+  --theme-tile-background: #3498db;
+  --theme-tile-border: #2980b9;
+}
+
+/* Game container theme */
+.game-container {
+  background: var(--theme-background);
+  color: var(--theme-primary);
+  transition: all 0.3s;
+}
+
+/* Tile theme overrides */
+.tile {
+  background: var(--theme-tile-background);
+  border: 1px solid var(--theme-tile-border);
+  transition: all 0.2s;
+}
+
+.tile.tile-merged {
+  background: var(--theme-primary);
+  color: var(--theme-background);
+}
+
+.tile.tile-new {
+  animation: tile-new 0.2s ease-out;
+}
+
+@keyframes tile-new {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* Modal theme */
+.modal {
+  background: var(--theme-background);
+  color: var(--theme-primary);
+  border: 2px solid var(--theme-tile-border);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--theme-tile-border);
+}
+
+.modal-content {
+  color: var(--theme-secondary);
+}
+
+/* Button theme */
+.btn {
+  background: var(--theme-tile-background);
+  color: var(--theme-primary);
+  border: 1px solid var(--theme-tile-border);
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  background: var(--theme-primary);
+  color: var(--theme-background);
+  border-color: var(--theme-secondary);
+}
+
+/* Leaderboard theme */
+.leaderboard {
+  background: var(--theme-background);
+  color: var(--theme-primary);
+}
+
+.leaderboard-list li {
+  border-bottom: 1px solid var(--theme-tile-border);
+}
+
+.leaderboard-list li:hover {
+  background: var(--theme-tile-background);
+}
+
+/* Score display theme */
+.score-container,
+.best-container,
+.moves-container {
+  color: var(--theme-primary);
+}
+
+/* Game over theme */
+.game-message {
+  background: var(--theme-background);
+  color: var(--theme-primary);
+  border: 2px solid var(--theme-tile-border);
+}
+
+.game-message p {
+  color: var(--theme-secondary);
+}
+
+/* Touch controls theme */
+.touch-control {
+  background: var(--theme-tile-background);
+  color: var(--theme-primary);
+  border: 1px solid var(--theme-tile-border);
+}
+
+.touch-control:hover {
+  background: var(--theme-primary);
+  color: var(--theme-background);
+}
+
+/* Responsive theme adjustments */
+@media (max-width: 768px) {
+  .game-container {
+    background: var(--theme-background);
+    color: var(--theme-primary);
+  }
+  
+  .tile {
+    background: var(--theme-tile-background);
+    border: 1px solid var(--theme-tile-border);
+  }
+}
