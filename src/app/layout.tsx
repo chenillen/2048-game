@@ -2,6 +2,7 @@ import '../styles/globals.css';
 import { ThemeProvider } from '../components/theme-provider';
 import { UserProvider } from '../components/user-context';
 import BottomNav from '../components/bottom-nav';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata = {
   title: '4096',
@@ -34,6 +35,7 @@ export default function RootLayout({
             <BottomNav />
           </UserProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
